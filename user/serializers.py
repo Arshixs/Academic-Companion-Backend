@@ -1,6 +1,6 @@
 # core_app/serializers.py
 from rest_framework import serializers
-from .models import User
+from .models import User,Enrollment
 
 class UserSerializer(serializers.ModelSerializer):
     # Add password field explicitly with write-only permission
@@ -22,3 +22,9 @@ class UserSerializer(serializers.ModelSerializer):
         # Save the user instance
         instance.save()
         return instance
+
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment
+        fields = ['user', 'course', 'enrollment_date']

@@ -2,7 +2,7 @@ from django.db import models # type: ignore
 from django.contrib.auth.models import AbstractUser # type: ignore
 from django.utils import timezone # type: ignore
 from datetime import datetime, date
-from college.models import College
+from college.models import College,Course
 
 # Create your models here.
 # Custom User Model inheriting from AbstractUser to extend default Django User
@@ -15,3 +15,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+    
+class Enrollment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    enrollment_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'course')  # Ensure unique enrollment for each user in a course
+
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.course_name}"

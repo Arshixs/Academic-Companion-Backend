@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)c_y9n0r9qu=5yc$3%@@abz19=ql#+0s(sw11+a50l$rvwwhv5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['http://localhost:5173','127.0.0.1']
 
 
 # Application definition
@@ -38,13 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'user',
     'college',
 ]
 
 AUTH_USER_MODEL = 'user.User'
 
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'college.exceptions.custom_exception_handler',
+}
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,6 +60,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # your frontend URL
+]
+
 
 ROOT_URLCONF = 'Academic_Companion.urls'
 
