@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)c_y9n0r9qu=5yc$3%@@abz19=ql#+0s(sw11+a50l$rvwwhv5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['http://localhost:5173','127.0.0.1']
+ALLOWED_HOSTS = ['http://localhost:5173','127.0.0.1','http://localhost:5173','http://127.0.0.1:5173']
 
 
 # Application definition
@@ -46,6 +46,13 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'user.User'
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Allow access to any user
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
     'EXCEPTION_HANDLER': 'college.exceptions.custom_exception_handler',
 }
 
@@ -61,10 +68,19 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # your frontend URL
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
+# Allow credentials to be included in cross-origin requests
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow requests from specific origins (e.g., localhost or Vite development server)
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',  # Vite development server
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1',
+]
 
 ROOT_URLCONF = 'Academic_Companion.urls'
 

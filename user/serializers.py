@@ -28,3 +28,19 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = ['user', 'course', 'enrollment_date']
+        
+        
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'username', 
+            'email', 
+            'first_name', 
+            'last_name', 
+            'branch', 
+            'current_semester', 
+            'college', 
+            'created_at'
+        ]

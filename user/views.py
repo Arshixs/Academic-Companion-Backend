@@ -1,10 +1,12 @@
 from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from django.contrib.auth import authenticate, login, logout
 from .models import User
 from .serializers import UserSerializer,EnrollmentSerializer
 from college.serializers import CourseSerializer
-from college.models import Course
+from college.models import Course,College
 
 # Create User API
 class UserCreateAPIView(generics.CreateAPIView):
@@ -15,6 +17,58 @@ class UserCreateAPIView(generics.CreateAPIView):
 class UserListAPIView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+class UserLoginAPIView(APIView):
+    permission_classes = []  # Allow unauthenticated users to log in
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        # Authenticate the user
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+
+            curr_user = User.objects.get(username=user.username)
+            # curr_user_college = College.objects.get(id = curr_user.college)
+
+            # Prepare user data (you can modify this to include more details)
+            user_data = {
+                "id": curr_user.id,
+                "username": curr_user.username,
+                "email": curr_user.email,
+                "first_name": curr_user.first_name,
+                "last_name": curr_user.last_name,
+                "branch": curr_user.branch,
+                "current_semester": curr_user.current_semester,
+                "college": curr_user.college.college_name if curr_user.college else None,  # Accessing related object
+            }
+
+            return Response({"message": "Logged in successfully", "user_data": user_data}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Class-based Logout API View
+class UserLogoutAPIView(APIView):
+    permission_classes = []  # You can add permissions if required
+
+    def post(self, request, *args, **kwargs):
+        # Log the user out
+        logout(request)
+        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+    
+
+class UserProfileAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            # User is authenticated, return user details
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            # User is not authenticated
+            return Response({"error": "User not authenticated"}, status=status.HTTP_403_FORBIDDEN)
+
 
 
 class EnrollmentCreateAPIView(generics.CreateAPIView):
