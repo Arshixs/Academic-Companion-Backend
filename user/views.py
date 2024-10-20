@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
-from .models import User
+from .models import User,Enrollment
 from .serializers import UserSerializer,EnrollmentSerializer
 from college.serializers import CourseSerializer
 from college.models import Course,College
@@ -110,3 +110,14 @@ class EnrollmentCreateAPIView(generics.CreateAPIView):
             else:
                 # Return errors if the course creation data is invalid
                 return Response(course_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+class UserCoursesAPIView(APIView):
+    def get(self, request, user_id: int, *args, **kwargs):
+        try:
+            # Get all courses for the given user_id
+            enrollments = Enrollment.objects.filter(user_id=user_id).select_related('course')
+            courses = [enrollment.course for enrollment in enrollments]
+            serializer = CourseSerializer(courses, many=True)  # Serialize course data
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Enrollment.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
