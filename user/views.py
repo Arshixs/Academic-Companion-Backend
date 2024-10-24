@@ -7,6 +7,7 @@ from .models import User,Enrollment
 from .serializers import UserSerializer,EnrollmentSerializer
 from college.serializers import CourseSerializer
 from college.models import Course,College
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create User API
 class UserCreateAPIView(generics.CreateAPIView):
@@ -18,6 +19,7 @@ class UserListAPIView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+
 class UserLoginAPIView(APIView):
     permission_classes = []  # Allow unauthenticated users to log in
 
@@ -25,15 +27,21 @@ class UserLoginAPIView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
 
+        if not username or not password:
+            return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
         # Authenticate the user
         user = authenticate(username=username, password=password)
+
         if user is not None:
-            login(request, user)
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = refresh.access_token
 
+            # Fetch additional user data
             curr_user = User.objects.get(username=user.username)
-            # curr_user_college = College.objects.get(id = curr_user.college)
 
-            # Prepare user data (you can modify this to include more details)
+            # Prepare user data to send in the response
             user_data = {
                 "id": curr_user.id,
                 "username": curr_user.username,
@@ -42,11 +50,17 @@ class UserLoginAPIView(APIView):
                 "last_name": curr_user.last_name,
                 "branch": curr_user.branch,
                 "current_semester": curr_user.current_semester,
-                "college": curr_user.college.college_name if curr_user.college else None,  # Accessing related object
+                "college": curr_user.college.college_name if curr_user.college else None,
             }
 
-            return Response({"message": "Logged in successfully", "user_data": user_data}, status=status.HTTP_200_OK)
-        
+            return Response({
+                "message": "Logged in successfully",
+                "user_data": user_data,
+                "refresh_token": str(refresh),
+                "access_token": str(access_token)
+            }, status=status.HTTP_200_OK)
+
+        # If authentication fails
         return Response({"error": "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Class-based Logout API View

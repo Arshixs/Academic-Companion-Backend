@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import UserAttendanceAPIView
+from .views import UserAttendanceAPIView,UserAttendanceDetailedView
 
 urlpatterns = [
-    path('<int:user_id>/', UserAttendanceAPIView.as_view(), name='user-attendance'),
+    path('data/', UserAttendanceAPIView.as_view(), name='user-attendance'),
+    path('detailed/', UserAttendanceDetailedView.as_view(), name='attendance-for-user'),
 ]
