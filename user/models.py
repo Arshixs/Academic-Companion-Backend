@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractUser # type: ignore
 from django.utils import timezone # type: ignore
 from datetime import datetime, date
 from college.models import College,Course
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 # Create your models here.
 # Custom User Model inheriting from AbstractUser to extend default Django User
@@ -27,3 +30,5 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} enrolled in {self.course.course_name}"
+    
+    
