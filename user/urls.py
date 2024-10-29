@@ -15,4 +15,5 @@ urlpatterns = [
     # path('list/', UserListAPIView.as_view(), name='user-list'),
     path('enroll/create/', EnrollmentCreateAPIView.as_view(), name='enroll'),
     path('courses/<int:user_id>/', UserCoursesAPIView.as_view(), name='user-courses'), 
+
 ]
