@@ -23,4 +23,5 @@ urlpatterns = [
     path('users/', include('user.urls')),  # Include your app's urls
     path('attendance/', include('attendance.urls')),  # Include your app's urls
     path('assignment/', include('assignment.urls')),  # Include your app's urls
+    path('notes/', include('notes.urls')),  # Include your app's urls
 ]
