@@ -28,9 +28,10 @@ class Assignment(models.Model):
 
     STATUS_CHOICES = [
         ('todo', 'To Do'),
-        ('in_progress', 'In Progress'),
+        ('in-progress', 'In Progress'),
         ('done', 'Done'),
         ('backlog', 'Backlog'),
+        ('canceled', 'Canceled'),
     ]
 
     title = models.CharField(max_length=255)
