@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'assignment',
     'notes',
     'event_calendar',
+    'code_editor',
     
 ]
 

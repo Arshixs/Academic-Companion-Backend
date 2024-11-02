@@ -25,4 +25,5 @@ urlpatterns = [
     path('assignment/', include('assignment.urls')),  # Include your app's urls
     path('notes/', include('notes.urls')),  # Include your app's urls
     path('events/', include('event_calendar.urls')),
+    path('code/', include('code_editor.urls')),
 ]
