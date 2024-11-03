@@ -7,7 +7,7 @@ import tempfile
 import os
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import CodeExecutionSerializer, CodeSnippetSerializer
+from .serializers import CodeSnippetSerializer
 from .models import CodeSnippet
 
 

@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import CodeSnippet, ExecutionHistory, CodeTemplate
+from .models import CodeSnippet
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -34,50 +34,7 @@ class CodeSnippetSerializer(serializers.ModelSerializer):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
-class ExecutionHistorySerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    snippet = CodeSnippetSerializer(read_only=True)
-    
-    class Meta:
-        model = ExecutionHistory
-        fields = [
-            'id',
-            'snippet',
-            'user',
-            'code',
-            'language',
-            'output',
-            'error',
-            'status',
-            'execution_time',
-            'memory_usage',
-            'executed_at'
-        ]
-        read_only_fields = [
-            'user',
-            'executed_at',
-            'execution_time',
-            'memory_usage'
-        ]
-    
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
 
-class CodeTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CodeTemplate
-        fields = [
-            'id',
-            'title',
-            'description',
-            'language',
-            'template_code',
-            'is_active',
-            'created_at',
-            'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at']
 
 class CodeExecutionSerializer(serializers.Serializer):
     code = serializers.CharField(required=True)
@@ -106,7 +63,7 @@ class CodeExecutionSerializer(serializers.Serializer):
         return data
 
 class CodeSnippetListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for list views"""
+    """serializer for list views"""
     user = UserSerializer(read_only=True)
     
     class Meta:
