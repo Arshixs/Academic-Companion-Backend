@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, Enrollment
-from .serializers import UserSerializer, EnrollmentSerializer
+from .serializers import UserSerializer, EnrollmentSerializer, ProfileUpdateSerializer
 from college.serializers import CourseSerializer
 from college.models import Course
+from django.shortcuts import get_object_or_404
+
 
 class UserCreateAPIView(generics.CreateAPIView):
     """
@@ -147,6 +149,25 @@ class EnrollmentCreateAPIView(generics.CreateAPIView):
                 "error": f"Course '{course_name}' does not exist in your college."
             })
 
+class EnrollmentDeleteAPIView(generics.DestroyAPIView):
+    """
+    API view for deleting a course enrollment
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, course_id, *args, **kwargs):
+        user = request.user
+        
+        # Fetch the course associated with the course_id
+        # Fetch the course associated with the course_id and the user's college
+        course = get_object_or_404(Course, course_id=course_id, college=user.college)
+        # Fetch and delete the enrollment record
+        enrollment = get_object_or_404(Enrollment, user=user, course=course)
+        enrollment.delete()
+
+        # Return a success response
+        return Response({"message": "Enrollment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        
 # Optional: Add API view for searching users by college
 class CollegeUsersAPIView(generics.ListAPIView):
     """
@@ -160,3 +181,25 @@ class CollegeUsersAPIView(generics.ListAPIView):
         if college_name:
             return User.objects.filter(college__college_name=college_name)
         return User.objects.none()
+    
+
+
+class ProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, *args, **kwargs):
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            user = serializer.save()
+            
+            # Return the updated profile data
+            return Response({
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'branch': user.branch,
+                'current_semester': user.current_semester,
+                'college': user.college.college_name if user.college else None,
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -9,6 +9,8 @@ from .views import (
     UserCoursesAPIView,
     EnrollmentCreateAPIView,
     CollegeUsersAPIView,
+    EnrollmentDeleteAPIView,
+    ProfileUpdateView
 )
 
 urlpatterns = [
@@ -20,5 +22,8 @@ urlpatterns = [
     path('users/', UserListAPIView.as_view(), name='user-list'),
     path('courses/', UserCoursesAPIView.as_view(), name='user-courses'),
     path('enroll/', EnrollmentCreateAPIView.as_view(), name='course-enroll'),
+    path('delete/<str:course_id>/', EnrollmentDeleteAPIView.as_view(), name='enrollment-delete'),
     path('college-users/', CollegeUsersAPIView.as_view(), name='college-users'),
+    path('profile/patch/', ProfileUpdateView.as_view(), name='profile-patch'),
+
 ]

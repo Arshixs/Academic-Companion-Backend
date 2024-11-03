@@ -117,3 +117,47 @@ class CourseListAPIView(generics.ListAPIView):
         return Response({
             "error": "Something went wrong. Please try again later."
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+class CourseDeleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic  # Ensures all deletions occur within a single transaction
+    def delete(self, request, course_id, *args, **kwargs):
+        try:
+            user = request.user
+            
+            # Ensure the user has a college associated
+            try:
+                college = College.objects.get(user=user)
+            except College.DoesNotExist:
+                return Response(
+                    {"error": "No college associated with this user"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Retrieve the course to be deleted and check if it belongs to the user's college
+            try:
+                course = Course.objects.get(course_id=course_id, college=college)
+            except Course.DoesNotExist:
+                return Response(
+                    {"error": "Course not found or not associated with your college"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Delete enrollments associated with the course
+            Enrollment.objects.filter(course=course).delete()
+            
+            # Delete the course itself
+            course.delete()
+
+            return Response(
+                {"message": "Course and associated enrollments deleted successfully"},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": "An error occurred while deleting the course", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
