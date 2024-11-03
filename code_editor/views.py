@@ -24,6 +24,8 @@ class RunCodeView(APIView):
         """Execute a code snippet and optionally save it."""
         language = request.data.get('language')
         code = request.data.get('code')
+        title = request.data.get('title')
+        description = request.data.get('description')
         save_code = request.data.get('save', False)  # Check if the user wants to save the code
 
         if not all([language, code]):
@@ -67,6 +69,8 @@ class RunCodeView(APIView):
             # Save the code snippet if requested
             if save_code:
                 CodeSnippet.objects.create(
+                    title = title,
+                    description = description,
                     user=request.user,
                     language=language,
                     code=code
