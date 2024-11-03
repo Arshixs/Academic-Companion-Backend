@@ -1,36 +1,64 @@
 from rest_framework import serializers
-from .models import College,Course
+from .models import College, Course
 
 class CollegeSerializer(serializers.ModelSerializer):
     class Meta:
         model = College
-        fields = ['college_name', 'college_location']
-
-
-class CourseSerializer(serializers.ModelSerializer):
-    college_name = serializers.CharField(write_only=True, error_messages={
-        'blank': 'College name cannot be blank.',
-        'null': 'College name is required.'
-    })
-
-    class Meta:
-        model = Course
-        fields = ['course_id', 'course_name', 'college_name', 'created_at']
+        fields = ['id', 'college_name', 'college_location', 'created_at']
         read_only_fields = ['created_at']
 
     def create(self, validated_data):
-        college_name = validated_data.pop('college_name', None)
+        # Associate the college with the current user
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return super().create(validated_data)
 
-        # Handle if the college name is missing or invalid
-        if not college_name:
-            raise serializers.ValidationError({"college_name": "College name is required."})
+class CourseSerializer(serializers.ModelSerializer):
+    college_name = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = Course
+        fields = ['id', 'course_id', 'course_name', 'college_name', 'created_at']
+        read_only_fields = ['created_at', 'college_name']
 
-        # Look for the college by name
+    def get_college_name(self, obj):
+        return obj.college.college_name if obj.college else None
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            try:
+                user_college = College.objects.get(user=request.user)
+                if Course.objects.filter(
+                    course_id=data['course_id'],
+                    college=user_college
+                ).exists():
+                    raise serializers.ValidationError({
+                        "course_id": f"Course with ID '{data['course_id']}' already exists in your college."
+                    })
+            except College.DoesNotExist:
+                raise serializers.ValidationError({
+                    "college": "You must be associated with a college to create courses."
+                })
+        return data
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if not request or not hasattr(request, 'user'):
+            raise serializers.ValidationError({
+                "authentication": "Authentication credentials were not provided."
+            })
+
         try:
-            college = College.objects.get(college_name=college_name)
+            # Get the college associated with the current user
+            college = College.objects.get(user=request.user)
+            # Create the course with the user's college
+            course = Course.objects.create(
+                college=college,
+                **validated_data
+            )
+            return course
         except College.DoesNotExist:
-            raise serializers.ValidationError({"college_name": f"College with name '{college_name}' does not exist."})
-
-        # Create the course with the retrieved college
-        course = Course.objects.create(college=college, **validated_data)
-        return course
+            raise serializers.ValidationError({
+                "college": "You must be associated with a college to create courses."
+            })
