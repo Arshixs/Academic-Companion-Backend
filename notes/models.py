@@ -12,7 +12,6 @@ class Note(models.Model):
     content = models.TextField(blank=True)
     color = models.CharField(max_length=50, default='default')
     is_pinned = models.BooleanField(default=False)
-    is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

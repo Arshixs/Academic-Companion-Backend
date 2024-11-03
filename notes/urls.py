@@ -6,5 +6,5 @@ router = DefaultRouter()
 router.register(r'note', NoteViewSet, basename='note')  # Use 'note' without 'notes'
 
 urlpatterns = [
-    path('', include(router.urls)),  # No need for 'note/' in the path
+    path('', include(router.urls)),
 ]
