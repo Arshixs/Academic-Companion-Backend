@@ -158,10 +158,8 @@ class EnrollmentDeleteAPIView(generics.DestroyAPIView):
     def delete(self, request, course_id, *args, **kwargs):
         user = request.user
         
-        # Fetch the course associated with the course_id
-        # Fetch the course associated with the course_id and the user's college
+
         course = get_object_or_404(Course, course_id=course_id, college=user.college)
-        # Fetch and delete the enrollment record
         enrollment = get_object_or_404(Enrollment, user=user, course=course)
         enrollment.delete()
 

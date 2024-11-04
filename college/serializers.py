@@ -8,7 +8,6 @@ class CollegeSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
     def create(self, validated_data):
-        # Associate the college with the current user
         user = self.context['request'].user
         validated_data['user'] = user
         return super().create(validated_data)
@@ -50,9 +49,7 @@ class CourseSerializer(serializers.ModelSerializer):
             })
 
         try:
-            # Get the college associated with the current user
             college = College.objects.get(user=request.user)
-            # Create the course with the user's college
             course = Course.objects.create(
                 college=college,
                 **validated_data

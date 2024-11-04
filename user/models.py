@@ -8,7 +8,6 @@ from django.dispatch import receiver
 
 
 # Create your models here.
-# Custom User Model inheriting from AbstractUser to extend default Django User
 class User(AbstractUser):
     # Additional fields for the user
     branch = models.CharField(max_length=100, null=True, blank=True)
@@ -26,7 +25,7 @@ class Enrollment(models.Model):
     enrollment_date = models.DateField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'course')  # Ensure unique enrollment for each user in a course
+        unique_together = ('user', 'course')
 
     def __str__(self):
         return f"{self.user.username} enrolled in {self.course.course_name}"

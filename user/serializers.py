@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import User, Enrollment
 from college.models import College
-from college.serializers import CollegeSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
@@ -35,18 +34,15 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.college.college_name if obj.college else None
 
     def create(self, validated_data):
-        # Extract college data
         college_name = validated_data.pop('college_name')
         college_location = validated_data.pop('college_location')
         password = validated_data.pop('password', None)
 
-        # Retrieve existing college or create new one if it doesn't exist
         college, created = College.objects.get_or_create(
             college_name=college_name,
             defaults={'college_location': college_location}
         )
 
-        # Create user instance
         instance = self.Meta.model(
             college=college,
             **validated_data
@@ -59,7 +55,6 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        # Handle college update if provided
         college_name = validated_data.pop('college_name', None)
         college_location = validated_data.pop('college_location', None)
 
@@ -70,12 +65,10 @@ class UserSerializer(serializers.ModelSerializer):
             )
             instance.college = college
 
-        # Handle password updates
         password = validated_data.pop('password', None)
         if password is not None:
             instance.set_password(password)
 
-        # Update other fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -88,6 +81,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = ['user', 'course', 'enrollment_date']
+        
         
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     college_name = serializers.CharField(required=False)
