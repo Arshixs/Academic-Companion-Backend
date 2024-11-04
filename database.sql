@@ -1,112 +1,124 @@
--- Create database
-CREATE DATABASE AcademicCompanion;
-USE AcademicCompanion;
-
--- Users Table
-CREATE TABLE Users (
-    UserID INT AUTO_INCREMENT PRIMARY KEY,
-    Username VARCHAR(50) UNIQUE NOT NULL,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50),
-    PasswordHash VARCHAR(255) NOT NULL,
-    Email VARCHAR(100) UNIQUE NOT NULL,
-    Branch VARCHAR(100),
-    CurrentSemester INT,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- College Table
+CREATE TABLE College (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    college_name VARCHAR(255) UNIQUE,
+    college_location VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Courses Table
-CREATE TABLE Courses (
-    CourseID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,
-    Credits INT,
-    CourseName VARCHAR(100) NOT NULL,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_courses_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+-- Course Table
+CREATE TABLE Course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course_id VARCHAR(10),
+    course_name VARCHAR(100),
+    college_id INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (course_id, college_id),
+    FOREIGN KEY (college_id) REFERENCES College(id) ON DELETE SET NULL
+);
+
+-- User Table
+CREATE TABLE User (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(150) UNIQUE,
+    password VARCHAR(128),
+    email VARCHAR(254),
+    branch VARCHAR(100),
+    current_semester INT,
+    college_id INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (college_id) REFERENCES College(id) ON DELETE SET NULL
+);
+
+-- Enrollment Table
+CREATE TABLE Enrollment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    course_id INT,
+    enrollment_date DATE DEFAULT CURRENT_DATE,
+    UNIQUE (user_id, course_id),
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course(id) ON DELETE CASCADE
 );
 
 -- Attendance Table
 CREATE TABLE Attendance (
-    UserID INT,
-    CourseID INT,
-    AttendanceDate DATE NOT NULL,
-    Status ENUM('present', 'absent', 'other', 'no class') NOT NULL,
-    CONSTRAINT fk_attendance_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-    CONSTRAINT fk_attendance_course FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
-    PRIMARY KEY (UserID, CourseID, AttendanceDate)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    enrollment_id INT,
+    attendance_date DATE,
+    status ENUM('present', 'absent', 'no class'),
+    UNIQUE (enrollment_id, attendance_date),
+    FOREIGN KEY (enrollment_id) REFERENCES Enrollment(id) ON DELETE CASCADE
 );
 
--- Assignments Table
-CREATE TABLE Assignments (
-    AssignmentID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,
-    CourseID INT,
-    Title VARCHAR(100) NOT NULL,
-    Description TEXT,
-    DueDate DATE,
-    CONSTRAINT fk_assignments_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-    CONSTRAINT fk_assignments_course FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE,
-    UNIQUE (UserID, CourseID, Title)
+-- Label Table
+CREATE TABLE Label (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    user_id INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE (name, user_id),
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
 );
 
--- Notes Table
-CREATE TABLE Notes (
-    NoteID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,
-    NoteTitle VARCHAR(100) NOT NULL,
-    NoteContent TEXT,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_notes_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+-- Assignment Table
+CREATE TABLE Assignment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    status ENUM('todo', 'in-progress', 'done', 'backlog', 'canceled') DEFAULT 'todo',
+    priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+    label_id INT,
+    user_id INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (label_id) REFERENCES Label(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
 );
 
--- Calendar Table
-CREATE TABLE Calendar (
-    EventID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,
-    EventTitle VARCHAR(100) NOT NULL,
-    EventDescription TEXT,
-    EventDate DATE NOT NULL,
-    StartTime TIME,
-    EndTime TIME,
-    CONSTRAINT fk_calendar_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE SET NULL
+-- CodeSnippet Table
+CREATE TABLE CodeSnippet (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    code TEXT,
+    language ENUM('python', 'cpp', 'c', 'javascript'),
+    user_id INT,
+    is_public BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    INDEX (user_id, language),
+    INDEX (is_public, created_at)
 );
 
--- Resources Table
-CREATE TABLE Resources (
-    ResourceID INT AUTO_INCREMENT PRIMARY KEY,      
-    UserID INT,                            
-    file_name VARCHAR(255) NOT NULL,        
-    file_type VARCHAR(50),                 
-    file_size BIGINT,                      
-    file_path VARCHAR(255) NOT NULL,        
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    description TEXT,                      
-    visibility ENUM('private', 'public') DEFAULT 'private', 
-    CONSTRAINT fk_resources_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+-- CalendarEvent Table
+CREATE TABLE CalendarEvent (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200),
+    description TEXT,
+    date DATE,
+    start_time TIME,
+    end_time TIME,
+    color ENUM('blue', 'red', 'green', 'yellow') DEFAULT 'blue',
+    created_by INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES User(id) ON DELETE CASCADE
 );
 
--- CodeEditor Table
-CREATE TABLE CodeEditor (
-    CodeEditorID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,                                
-    FileName VARCHAR(255) NOT NULL,        
-    code TEXT NOT NULL,                     
-    Language VARCHAR(50) DEFAULT 'cpp',  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_codeeditor_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE 
-
+-- Note Table
+CREATE TABLE Note (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    title VARCHAR(200),
+    content TEXT,
+    color VARCHAR(50) DEFAULT 'default',
+    is_pinned BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    INDEX (is_pinned, updated_at)
 );
-
--- GeminiIntegration Table
-CREATE TABLE GeminiIntegration (
-    GeminiID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT,                                
-    RequestText TEXT NOT NULL,         
-    ResponseText TEXT NOT NULL,           
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- When the interaction occurred
-    CONSTRAINT fk_gemini_user FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE 
-);
-
-
 
